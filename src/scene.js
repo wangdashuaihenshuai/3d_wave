@@ -17,9 +17,30 @@ function Scene (canvasId, canvasWidth, canvasHeight) {
   var len = matrixLen * matrixNum
   var y = -this.canvasHeight
 
-  this.watchPosition = {x: this.canvasWidth / 2, y: this.canvasHeight, z: -3000}
-  this.rotateAngel = {x: -0.27750735106709845, y: -3.3870295796514958, z: 0}
-  this.rotateP = {x: this.canvasWidth * 0.8, y: this.canvasHeight / 2, z: len / 2}
+  this.watchPosition = {x: -this.canvasWidth / 4, y: this.canvasHeight, z: -6000}
+  this.rotateAngel = {x: -0.26965336943312396, y: -3.6830265124819066, z: 0}
+  this.rotateP = {x: len / 4, y: y / 2, z: len / 2}
+
+  this.isDown = false
+  document.onmousedown = (e) => {
+    this.oldDownPosition = {x: e.clientX, y: e.clientY}
+    this.isDown = true
+  }
+
+  document.onmouseup = (e) => {
+    this.isDown = false
+  }
+
+  document.onmousemove = (e) => {
+    if (this.isDown) {
+      var addX = e.clientX - this.oldDownPosition.x
+      var addY = this.oldDownPosition.y - e.clientY
+      this.oldDownPosition = {x: e.clientX, y: e.clientY}
+      this.rotateAngel.y = this.rotateAngel.y + (addX * 0.9 / this.canvasWidth) * Math.PI
+      this.rotateAngel.x = this.rotateAngel.x + (addY * 0.8 / this.canvasWidth) * Math.PI
+      console.log(this.rotateAngel)
+    }
+  }
 
   var positionsInfo = []
   _.each(_.range(matrixNum), numX => {
@@ -29,16 +50,7 @@ function Scene (canvasId, canvasWidth, canvasHeight) {
       positionsInfo.push({position: {x: x, y: y, z: z}, numInfo: {x: numX, z: numZ, num: matrixNum, height: this.canvasHeight}})
     })
   })
-  var self = this
-  document.onmousemove = function (e) {
-    e = e || window.event
-    var px = e.screenX - self.canvasWidth / 2
-    var py = self.canvasHeight / 2 + e.screenY
-    console.log(px, py)
-    self.rotateAngel.y = (px * 0.9 / self.canvasWidth) * Math.PI
-    self.rotateAngel.x = -(py * 0.8 / self.canvasWidth) * Math.PI
-    console.log(self.rotateAngel)
-  }
+
   this.hexagons = _.map(positionsInfo, positionInfo => {
     return new Hexagon({
       ctx: this.ctx,
@@ -71,11 +83,10 @@ Scene.prototype.clear = function () {
 }
 
 Scene.prototype.run = function () {
-  var self = this
-  self.caculate()
-  self.clear()
-  self.draw()
-  window.requestAnimationFrame(function () {
-    self.run()
+  this.caculate()
+  this.clear()
+  this.draw()
+  window.requestAnimationFrame(() => {
+    this.run()
   })
 }
